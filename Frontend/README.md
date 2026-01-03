@@ -5,7 +5,8 @@ A premium, interactive React application designed for seamless logistics managem
 ## ✨ Features
 - **Dark Mode by Default**: Sleek, professional dark-themed interface.
 - **AI Insights**: Dashboard component providing predictive shipment analysis.
-- **Real-time Tracking**: Interactive tracking journal with status history.
+- **Real-time Tracking**: Powered by Socket.io for instant shipment updates.
+- **Stripe Checkout**: Integrated secure card payment flow.
 - **Framer Motion**: Smooth micro-animations for a premium user experience.
 - **RTK Query**: High-performance data fetching and caching.
 
@@ -20,6 +21,7 @@ A premium, interactive React application designed for seamless logistics managem
 Create a `.env` file in the root of the `Frontend` directory:
 ```env
 VITE_API_BASE_URL=https://your-api.vercel.app/api/v1
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
 ## 🚀 Development

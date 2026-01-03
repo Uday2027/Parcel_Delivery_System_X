@@ -1,5 +1,4 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import { useCurrentUser } from '@/redux/features/auth/authSlice';
 import MainLayout from '@/components/layout/MainLayout';
 import { Role } from '@/types';
@@ -14,10 +13,13 @@ import PublicTracking from '@/pages/PublicTracking';
 import TrackParcel from '@/pages/TrackParcel';
 import DeliveryCrew from '@/pages/DeliveryCrew';
 import Landing from '@/pages/Landing';
+import Profile from '@/pages/Profile';
+import Features from '@/pages/Features';
+import About from '@/pages/About';
 
 
 const ProtectedRoute = ({ children, roles }: { children: React.ReactNode, roles?: Role[] }) => {
-  const user = useSelector(useCurrentUser);
+  const user = useCurrentUser();
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -37,15 +39,18 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/track-public" element={<PublicTracking />} />
+      <Route path="/features" element={<Features />} />
+      <Route path="/about" element={<About />} />
       
       <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/my-parcels" element={<MyParcels />} />
-        <Route path="/book-parcel" element={<BookParcel />} />
-        <Route path="/track" element={<TrackParcel />} />
-        <Route path="/admin/parcels" element={<AdminParcels />} />
-        <Route path="/admin/delivery-crew" element={<DeliveryCrew />} />
-        <Route path="/delivery/assignments" element={<DeliveryAssignments />} />
+        <Route path="/dashboard/my-parcels" element={<MyParcels />} />
+        <Route path="/dashboard/book-parcel" element={<BookParcel />} />
+        <Route path="/dashboard/track" element={<TrackParcel />} />
+        <Route path="/dashboard/profile" element={<Profile />} />
+        <Route path="/dashboard/admin-parcels" element={<AdminParcels />} />
+        <Route path="/dashboard/delivery-crew" element={<DeliveryCrew />} />
+        <Route path="/dashboard/delivery-assignments" element={<DeliveryAssignments />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

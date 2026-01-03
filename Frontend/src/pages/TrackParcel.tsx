@@ -6,10 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Loader2, MapPin, Package, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { socket } from '@/lib/socket';
+import LiveMap from '@/components/map/LiveMap';
+import { useDispatch } from 'react-redux';
+import { baseApi } from '@/redux/api/baseApi';
 
 const TrackParcel: React.FC = () => {
   const [trackingId, setTrackingId] = useState('');
   const [track, { data: response, isLoading, error }] = useLazyGetParcelByTrackingIdQuery();
+  const [liveLocation, setLiveLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const handleTrack = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +29,34 @@ const TrackParcel: React.FC = () => {
     history: any[], 
     deliveryBoy?: any 
   }) : null;
+
+  const dispatch = useDispatch();
+
+  React.useEffect(() => {
+    if (parcel && (parcel as any)._id) {
+        const parcelId = (parcel as any)._id;
+        socket.connect();
+        socket.emit('join-parcel', parcelId);
+
+        socket.on('parcel-updated', (updatedData) => {
+            console.log('Real-time status update received:', updatedData);
+            // Invalidate the query to refresh data via Redux Toolkit Query
+            dispatch(baseApi.util.invalidateTags([{ type: 'Parcel', id: trackingId }]));
+        });
+
+        socket.on('location-updated', (locationData) => {
+            console.log('Real-time location update received:', locationData);
+            setLiveLocation(locationData);
+            dispatch(baseApi.util.invalidateTags([{ type: 'Parcel', id: trackingId }]));
+        });
+
+        return () => {
+            socket.off('parcel-updated');
+            socket.off('location-updated');
+            socket.disconnect();
+        };
+    }
+  }, [parcel, trackingId, dispatch]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -70,6 +103,22 @@ const TrackParcel: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {parcel && (
+        <div className="space-y-6">
+           <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                    <MapPin className="w-5 h-5 text-primary" /> Live Route
+                </h2>
+                {liveLocation && (
+                    <Badge className="bg-primary/20 text-primary border-primary/20 animate-pulse">
+                        Satelitte Signal: Online
+                    </Badge>
+                )}
+            </div>
+            <LiveMap deliveryLat={liveLocation?.lat} deliveryLng={liveLocation?.lng} />
+        </div>
+      )}
 
       {parcel && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-12">

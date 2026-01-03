@@ -8,10 +8,28 @@ import { Package, Search, XCircle, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 import type { IParcel, IUser } from '@/types';
+import { CheckoutModal } from '@/components/payment/CheckoutModal';
+import { CreditCard, FileDown } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const MyParcels: React.FC = () => {
   const { data: parcels, isLoading, isFetching, refetch } = useGetMyParcelsQuery(undefined);
   const [cancelParcel, { isLoading: isCancelling }] = useCancelParcelMutation();
+
+  const [selectedParcelForPayment, setSelectedParcelForPayment] = React.useState<IParcel | null>(null);
+  const [showCheckout, setShowCheckout] = React.useState(false);
+
+  const handlePayNow = (parcel: IParcel) => {
+    setSelectedParcelForPayment(parcel);
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutComplete = () => {
+    setShowCheckout(false);
+    setSelectedParcelForPayment(null);
+    refetch();
+  };
 
   const handleCancel = async (id: string) => {
     try {
@@ -20,6 +38,50 @@ const MyParcels: React.FC = () => {
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to cancel parcel.');
     }
+  };
+
+  const generateReceipt = (parcel: IParcel) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFillColor(34, 197, 94);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.text('ExpressFlow Receipt', 20, 25);
+    doc.setFontSize(10);
+    doc.text(`Tracking ID: ${parcel.trackingId}`, 20, 33);
+    
+    // Body
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(14);
+    doc.text('Shipment Details', 20, 55);
+    
+    const tableData = [
+      ['Sender', (parcel.sender as IUser)?.name || 'N/A'],
+      ['Receiver', (parcel.receiver as IUser)?.name || 'N/A'],
+      ['Type', parcel.type],
+      ['Weight', `${parcel.weight} kg`],
+      ['Fee', `৳ ${parcel.fee}`],
+      ['Payment Status', parcel.paymentStatus || 'Pending'],
+      ['Date', new Date(parcel.createdAt).toLocaleDateString()],
+    ];
+
+    autoTable(doc, {
+      startY: 65,
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [30, 30, 30], textColor: [255, 255, 255] },
+      styles: { fontSize: 10, cellPadding: 5 }
+    });
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Thank you for choosing ExpressFlow Logistics Hub.', 105, 280, { align: 'center' });
+    
+    doc.save(`Receipt-${parcel.trackingId}.pdf`);
+    toast.success('Receipt downloaded!');
   };
 
   const getStatusColor = (status: string) => {
@@ -74,7 +136,7 @@ const MyParcels: React.FC = () => {
               <TableRow className="border-zinc-800 hover:bg-transparent">
                 <TableHead className="text-zinc-300 font-bold uppercase text-[10px] tracking-widest pl-6">Tracking ID</TableHead>
                 <TableHead className="text-zinc-300 font-bold uppercase text-[10px] tracking-widest">Receiver & Type</TableHead>
-                <TableHead className="text-zinc-300 font-bold uppercase text-[10px] tracking-widest">Fee (৳)</TableHead>
+                <TableHead className="text-zinc-300 font-bold uppercase text-[10px] tracking-widest">Fee & Payment</TableHead>
                 <TableHead className="text-zinc-300 font-bold uppercase text-[10px] tracking-widest">Status</TableHead>
                 <TableHead className="text-right text-zinc-300 font-bold uppercase text-[10px] tracking-widest pr-6">Action</TableHead>
               </TableRow>
@@ -99,27 +161,57 @@ const MyParcels: React.FC = () => {
                         <span className="text-[10px] text-zinc-500">{parcel.type} • {parcel.weight}kg</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-zinc-300 font-medium">৳ {parcel.fee}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-zinc-300 font-medium font-mono text-xs">৳ {parcel.fee}</span>
+                        <span className={cn(
+                            "text-[10px] font-bold uppercase tracking-wider mt-1",
+                            parcel.paymentStatus === 'Paid' ? "text-emerald-500" : "text-amber-500"
+                        )}>
+                            {parcel.paymentStatus || 'Pending'}
+                        </span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn("font-semibold text-[10px] uppercase px-2 py-0.5", getStatusColor(parcel.statusLogs[parcel.statusLogs.length - 1].status))}>
                         {parcel.statusLogs[parcel.statusLogs.length - 1].status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right space-x-2 pr-6">
-                      <Button variant="ghost" size="sm" className="text-zinc-500 hover:text-white hover:bg-zinc-800">
-                         <Search className="w-4 h-4 mr-1" /> Track
-                      </Button>
-                      {parcel.statusLogs[parcel.statusLogs.length - 1].status === 'Pending' && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-rose-500/70 hover:text-rose-500 hover:bg-rose-500/10"
-                          onClick={() => handleCancel(parcel._id)}
-                          disabled={isCancelling}
-                        >
-                           <XCircle className="w-4 h-4 mr-1" /> Cancel
+                        <Button variant="ghost" size="sm" className="text-zinc-500 hover:text-white hover:bg-zinc-800">
+                           <Search className="w-4 h-4 mr-1" /> Track
                         </Button>
-                      )}
+                        {parcel.paymentStatus !== 'Paid' && (
+                            <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-primary hover:bg-primary/10 font-bold"
+                                onClick={() => handlePayNow(parcel)}
+                            >
+                                <CreditCard className="w-4 h-4 mr-1" /> Pay Now
+                            </Button>
+                        )}
+                    {parcel.paymentStatus === 'Paid' && (
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-emerald-500 hover:bg-emerald-500/10 font-bold"
+                            onClick={() => generateReceipt(parcel)}
+                        >
+                            <FileDown className="w-4 h-4 mr-1" /> Receipt
+                        </Button>
+                    )}
+                        {parcel.statusLogs[parcel.statusLogs.length - 1].status === 'Pending' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-rose-500/70 hover:text-rose-500 hover:bg-rose-500/10"
+                            onClick={() => handleCancel(parcel._id)}
+                            disabled={isCancelling}
+                          >
+                             <XCircle className="w-4 h-4 mr-1" /> Cancel
+                          </Button>
+                        )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -133,6 +225,15 @@ const MyParcels: React.FC = () => {
       <div className="flex justify-center opacity-20 py-12">
          <TruckIcon className="w-24 h-24 text-zinc-500" />
       </div>
+
+      {selectedParcelForPayment && (
+        <CheckoutModal 
+            isOpen={showCheckout} 
+            onClose={handleCheckoutComplete} 
+            parcelId={selectedParcelForPayment._id}
+            amount={selectedParcelForPayment.fee}
+        />
+      )}
     </div>
   );
 };

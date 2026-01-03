@@ -31,5 +31,11 @@ const authSlice = createSlice({
 export const { setUser, logout } = authSlice.actions;
 export default authSlice.reducer;
 
-export const useCurrentUser = (state: { auth: AuthState }) => state.auth.user;
-export const useCurrentToken = (state: { auth: AuthState }) => state.auth.token;
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
+
+export const selectCurrentUser = (state: RootState) => state.auth.user;
+export const selectCurrentToken = (state: RootState) => state.auth.token;
+
+export const useCurrentUser = () => useSelector(selectCurrentUser);
+export const useCurrentToken = () => useSelector(selectCurrentToken);

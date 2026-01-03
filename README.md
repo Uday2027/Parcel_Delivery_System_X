@@ -7,8 +7,8 @@ ExpressFlow is a high-performance, premium parcel delivery management system bui
 - **Backend API**: [https://parcel-api-backend.vercel.app](https://parcel-api-backend-ih0n22t05-zubayer-hossain-udays-projects.vercel.app)
 
 ## 🛠️ Tech Stack
-- **Frontend**: React (Vite), TypeScript, Tailwind CSS, Framer Motion, RTK Query.
-- **Backend**: Node.js, Express, TypeScript, Mongoose.
+- **Frontend**: React (Vite), TypeScript, Tailwind CSS, Framer Motion, RTK Query, Socket.io-client.
+- **Backend**: Node.js, Express, TypeScript, Mongoose, Socket.io, Stripe.
 - **Database**: MongoDB Atlas.
 - **Deployment**: Vercel (Infrastructure-as-Code).
 
@@ -16,7 +16,9 @@ ExpressFlow is a high-performance, premium parcel delivery management system bui
 - **Classy Landing Page**: Futuristic UI with smooth animations and cinematic visuals.
 - **Smart Dashboard**: AI-powered delivery insights and dynamic shipment stats.
 - **Role-Based Access**: Specialized interfaces for Customers, Delivery Crew, and Super Admins.
-- **Live Tracking**: Public and Private tracking portals with real-time location updates.
+- **Live Tracking**: Real-time bi-directional communication using Socket.io.
+- **Integrated Payments**: Secure checkout flow integrated with Stripe.
+- **Role-Based Access**: Specialized interfaces for Customers, Delivery Crew, and Super Admins.
 - **Admin Control**: Complete management of delivery personnel, assignments, and shipment status.
 - **Responsive Design**: Fully optimized for Desktop, Tablet, and Mobile.
 

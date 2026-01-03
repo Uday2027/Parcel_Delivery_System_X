@@ -10,6 +10,7 @@ import { Search, MapPin, Package, Weight, Calendar, ArrowRight, Loader2, User as
 import { toast } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 import type { IUser } from '@/types';
+import { CheckoutModal } from '@/components/payment/CheckoutModal';
 
 const BookParcel: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,9 @@ const BookParcel: React.FC = () => {
     estimatedDeliveryDate: '',
   });
   
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [newlyCreatedParcelId, setNewlyCreatedParcelId] = useState<string | null>(null);
+  const [totalAmount, setTotalAmount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReceiver, setSelectedReceiver] = useState<IUser | null>(null);
   const [searchTrigger, { data: searchResults, isFetching: isSearching }] = useLazySearchUsersQuery();
@@ -47,12 +51,19 @@ const BookParcel: React.FC = () => {
       return toast.error("Please select a receiver using the search tool.");
     }
     try {
-      await createParcel(formData).unwrap();
-      toast.success('Parcel booked successfully!');
-      navigate('/my-parcels');
+      const res = await createParcel(formData).unwrap();
+      setNewlyCreatedParcelId(res.data._id);
+      setTotalAmount(res.data.fee);
+      toast.success('Parcel booked! Please complete payment.');
+      setShowCheckout(true);
     } catch (err: any) {
       toast.error(err?.data?.message || 'Booking failed. Try again.');
     }
+  };
+
+  const handleCheckoutComplete = () => {
+    setShowCheckout(false);
+    navigate('/my-parcels');
   };
 
   return (
@@ -231,6 +242,15 @@ const BookParcel: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {newlyCreatedParcelId && (
+        <CheckoutModal 
+            isOpen={showCheckout} 
+            onClose={handleCheckoutComplete} 
+            parcelId={newlyCreatedParcelId}
+            amount={totalAmount}
+        />
+      )}
     </div>
   );
 };

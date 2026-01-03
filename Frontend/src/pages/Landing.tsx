@@ -1,17 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-    Package, 
-    Truck, 
-    ShieldCheck, 
-    Globe, 
-    MousePointerClick, 
-    ArrowRight, 
-    Search,
-    BrainCircuit,
-    Clock
-} from 'lucide-react';
+import { Car, Package, Globe, ArrowRight, Clock, MousePointerClick, Search, ShieldCheck, BrainCircuit } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Landing: React.FC = () => {
@@ -20,17 +10,17 @@ const Landing: React.FC = () => {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Package className="w-5 h-5 text-primary-foreground" />
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
+              <Car className="w-6 h-6 text-zinc-950 fill-current" />
             </div>
-            <span className="text-xl font-black italic tracking-tighter uppercase">ExpressFlow</span>
-          </div>
+            <span className="text-2xl font-black tracking-tighter text-white italic group-hover:text-primary transition-colors">EXPRESSFLOW</span>
+          </Link>
           
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <a href="#features" className="hover:text-primary transition-colors">Features</a>
+            <Link to="/features" className="hover:text-primary transition-colors">Features</Link>
             <Link to="/track-public" className="hover:text-primary transition-colors">Live Tracking</Link>
-            <a href="#footer" className="hover:text-primary transition-colors">About</a>
+            <Link to="/about" className="hover:text-primary transition-colors">About</Link>
           </div>
 
           <div className="flex items-center gap-4">
@@ -113,16 +103,16 @@ const Landing: React.FC = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-primary to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
             <div className="relative bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden shadow-2xl aspect-[16/9]">
                 <img 
-                    src="/hero.png" 
-                    alt="ExpressFlow Future" 
-                    className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
+                  src="/hero_car.png" 
+                  alt="ExpressFlow Premium Delivery Car" 
+                  className="w-full h-full object-cover rounded-3xl"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
                 
                 {/* Floating UI Elements */}
                 <div className="absolute bottom-8 left-8 right-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
-                        { label: 'Live Fleet', val: '2,400+', icon: Truck },
+                        { label: 'Live Fleet', val: '2,400+', icon: Car },
                         { label: 'Secured Data', val: 'AES-256', icon: ShieldCheck },
                         { label: 'Global Hubs', val: '180+', icon: Globe },
                     ].map((s, idx) => (

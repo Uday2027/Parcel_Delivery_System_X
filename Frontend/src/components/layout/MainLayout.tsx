@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { logout, useCurrentUser } from '@/redux/features/auth/authSlice';
 import { 
   LayoutDashboard, 
   Package, 
+  Car, 
   Users, 
-  Truck, 
   LogOut, 
-  Menu, 
-  Search
+  Search, 
+  Menu,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Role } from '@/types';
+import type { IUser } from '@/types';
 
 const MainLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const user = useSelector(useCurrentUser);
+  const user = useCurrentUser();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,52 +30,43 @@ const MainLayout: React.FC = () => {
     navigate('/login');
   };
 
-  const menuItems = [
-    {
-      title: 'Dashboard',
-      icon: LayoutDashboard,
-      path: '/dashboard',
-      roles: [Role.USER, Role.ADMIN, Role.SUPER_ADMIN, Role.DELIVERY_BOY],
-    },
-    {
-      title: 'My Parcels',
-      icon: Package,
-      path: '/my-parcels',
-      roles: [Role.USER],
-    },
-    {
-      title: 'Book Parcel',
-      icon: Package,
-      path: '/book-parcel',
-      roles: [Role.USER],
-    },
-    {
-      title: 'Track Parcel',
-      icon: Search,
-      path: '/track',
-      roles: [Role.USER, Role.ADMIN, Role.SUPER_ADMIN, Role.DELIVERY_BOY],
-    },
-    {
-      title: 'Manage Parcels',
-      icon: Package,
-      path: '/admin/parcels',
-      roles: [Role.ADMIN, Role.SUPER_ADMIN],
-    },
-    {
-      title: 'Delivery Crew',
-      icon: Users,
-      path: '/admin/delivery-crew',
-      roles: [Role.ADMIN, Role.SUPER_ADMIN],
-    },
-    {
-      title: 'Assignments',
-      icon: Truck,
-      path: '/delivery/assignments',
-      roles: [Role.DELIVERY_BOY],
-    },
+  const userItems = [
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    { name: 'My Shipments', icon: Package, path: '/dashboard/my-parcels' },
+    { name: 'Track Parcel', icon: Search, path: '/dashboard/track' },
+    { name: 'Profile', icon: User, path: '/dashboard/profile' },
+  ];
+  
+  const adminItems = [
+    { name: 'Overview', icon: LayoutDashboard, path: '/dashboard' },
+    { name: 'Live Tracking', icon: Car, path: '/dashboard/admin-parcels' },
+    { name: 'Manage Crew', icon: Users, path: '/dashboard/delivery-crew' },
+    { name: 'Profile', icon: User, path: '/dashboard/profile' },
+  ];
+  
+  const deliveryBoyItems = [
+    { name: 'My Fleet', icon: Car, path: '/dashboard/delivery-assignments' },
+    { name: 'Profile', icon: User, path: '/dashboard/profile' },
   ];
 
-  const filteredItems = menuItems.filter(item => user && item.roles.includes(user.role));
+  let filteredItems: { name: string; icon: React.ElementType; path: string; }[] = [];
+
+  if (user) {
+    switch (user.role) {
+      case Role.USER:
+        filteredItems = userItems;
+        break;
+      case Role.ADMIN:
+      case Role.SUPER_ADMIN:
+        filteredItems = adminItems;
+        break;
+      case Role.DELIVERY_BOY:
+        filteredItems = deliveryBoyItems;
+        break;
+      default:
+        filteredItems = [];
+    }
+  }
 
   return (
     <div className="flex h-screen bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
@@ -92,12 +85,23 @@ const MainLayout: React.FC = () => {
       )}>
         <div className="flex flex-col h-full">
           <div className="p-6">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="bg-primary p-2 rounded-lg">
-                <Truck className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold tracking-tight">ExpressFlow</span>
-            </Link>
+            <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
+              <Car className="w-6 h-6 text-zinc-950 fill-current" />
+            </div>
+            <div>
+              <span className="text-xl font-black tracking-tighter text-white italic block leading-none">EXPRESS</span>
+              <span className="text-xl font-black tracking-tighter text-primary italic block leading-none">FLOW</span>
+            </div>
+          </Link>
+          </div>
+
+          <div className="px-4 mb-4">
+             <Link to="/">
+                <Button variant="ghost" className="w-full justify-start gap-3 text-zinc-500 hover:text-primary hover:bg-primary/5 border border-zinc-800/50">
+                   <LayoutDashboard className="w-4 h-4 rotate-[-90deg]" /> Back to Home
+                </Button>
+             </Link>
           </div>
 
           <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-4">
@@ -117,7 +121,7 @@ const MainLayout: React.FC = () => {
                   "w-5 h-5",
                   location.pathname === item.path ? "text-primary" : "group-hover:text-zinc-100"
                 )} />
-                {item.title}
+                {item.name}
                 {location.pathname === item.path && (
                   <span className="absolute left-0 w-1 h-6 bg-primary rounded-r-full" />
                 )}
@@ -127,12 +131,12 @@ const MainLayout: React.FC = () => {
 
           <div className="p-4 border-t border-zinc-800 bg-zinc-900/50">
             <div className="flex items-center gap-3 px-3 py-3 rounded-lg">
-              <Avatar className="h-10 w-10 border-2 border-zinc-800">
-                <AvatarImage src={(user as any)?.picture} />
-                <AvatarFallback className="bg-zinc-800 text-zinc-400 uppercase">
-                  {user?.name?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
+                <Avatar className="h-10 w-10 border-2 border-primary/20 hover:border-primary transition-colors cursor-pointer ring-offset-2 ring-primary/20 hover:ring-2">
+                  <AvatarImage src={(user as IUser)?.picture} />
+                  <AvatarFallback className="bg-zinc-800 text-primary font-black uppercase">
+                    {user?.name?.slice(0, 2) || (user as IUser)?.name?.slice(0, 2) || (user as any)?.userId?.slice(0, 2) || 'EX'}
+                  </AvatarFallback>
+                </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zinc-100 truncate">{user?.name}</p>
                 <p className="text-xs text-zinc-500 truncate">{user?.role?.replace('_', ' ')}</p>

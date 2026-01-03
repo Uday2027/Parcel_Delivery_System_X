@@ -3,8 +3,10 @@ import { useLazyGetParcelByTrackingIdQuery } from '@/redux/features/parcel/parce
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Truck, MapPin, Calendar, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, Car, MapPin, Calendar, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { socket } from '@/lib/socket';
+import LiveMap from '@/components/map/LiveMap';
 
 const PublicTracking: React.FC = () => {
   const [trackingId, setTrackingId] = useState('');
@@ -12,6 +14,7 @@ const PublicTracking: React.FC = () => {
   const [triggerSearch] = useLazyGetParcelByTrackingIdQuery();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [liveLocation, setLiveLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +33,31 @@ const PublicTracking: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  React.useEffect(() => {
+    if (parcel && parcel._id) {
+        socket.connect();
+        socket.emit('join-parcel', parcel._id);
+
+        const handleUpdate = () => {
+             // Re-trigger the search to get fresh data
+             triggerSearch(trackingId).unwrap().then(res => setParcel(res.data));
+        };
+
+        const handleLocationUpdate = (data: { lat: number; lng: number }) => {
+            setLiveLocation(data);
+        };
+
+        socket.on('parcel-updated', handleUpdate);
+        socket.on('location-updated', handleLocationUpdate);
+
+        return () => {
+            socket.off('parcel-updated');
+            socket.off('location-updated');
+            socket.disconnect();
+        };
+    }
+  }, [parcel, trackingId, triggerSearch]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -84,8 +112,23 @@ const PublicTracking: React.FC = () => {
 
         {/* Result Section */}
         {parcel && (
-          <div className="space-y-8 animate-in slide-in-from-bottom-8 duration-700">
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000">
+            {/* Live Map Section */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-primary" /> Live Movement
+                    </h2>
+                    {liveLocation && (
+                        <Badge className="bg-primary/20 text-primary border-primary/20 animate-pulse">
+                            Live Signal Active
+                        </Badge>
+                    )}
+                </div>
+                <LiveMap deliveryLat={liveLocation?.lat} deliveryLng={liveLocation?.lng} />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <Card className="bg-zinc-900 border-zinc-800">
                   <CardHeader className="pb-2">
                     <CardDescription className="text-xs uppercase tracking-wider">Current Status</CardDescription>
@@ -110,7 +153,7 @@ const PublicTracking: React.FC = () => {
                   <CardHeader className="pb-2">
                     <CardDescription className="text-xs uppercase tracking-wider">Shipment Type</CardDescription>
                     <CardTitle className="pt-2 text-zinc-200 flex items-center gap-2">
-                       <Truck className="w-5 h-5 text-primary" /> {parcel.type} ({parcel.weight}kg)
+                       <Car className="w-5 h-5 text-primary" /> {parcel.type} ({parcel.weight}kg)
                     </CardTitle>
                   </CardHeader>
                 </Card>

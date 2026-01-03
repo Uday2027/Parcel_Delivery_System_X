@@ -17,6 +17,14 @@ export const userApi = baseApi.injectEndpoints({
       },
       providesTags: ['User'],
     }),
+    updateUser: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/user/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
     updateLiveLocation: builder.mutation({
       query: (location) => ({
         url: '/user/live-location/update',
@@ -28,4 +36,10 @@ export const userApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useSearchUsersQuery, useLazySearchUsersQuery, useGetDeliveryBoysQuery, useUpdateLiveLocationMutation } = userApi;
+export const { 
+    useSearchUsersQuery, 
+    useLazySearchUsersQuery, 
+    useGetDeliveryBoysQuery, 
+    useUpdateLiveLocationMutation, 
+    useUpdateUserMutation 
+} = userApi;

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { useCurrentUser } from '@/redux/features/auth/authSlice';
 import { useGetMyParcelsQuery } from '@/redux/features/parcel/parcelApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +7,31 @@ import { Package, Truck, Clock, CheckCircle, TrendingUp, Loader2 } from 'lucide-
 import { Link } from 'react-router-dom';
 import AIDeliveryInsight from '@/components/dashboard/AIDeliveryInsight';
 import type { IParcel } from '@/types';
+import { socket } from '@/lib/socket';
 
 const Dashboard: React.FC = () => {
-  const user = useSelector(useCurrentUser);
-  const { data: parcelsData, isLoading } = useGetMyParcelsQuery(undefined);
+  const user = useCurrentUser();
+  const { data: parcelsData, isLoading, refetch } = useGetMyParcelsQuery(undefined);
+  const [isSocketConnected, setIsSocketConnected] = React.useState(false);
+
+  React.useEffect(() => {
+    socket.connect();
+    
+    socket.on('connect', () => setIsSocketConnected(true));
+    socket.on('disconnect', () => setIsSocketConnected(false));
+    
+    // Listen for any parcel update relevant to the user
+    socket.on('parcel-updated', () => {
+        refetch(); // Refresh data when any parcel changes
+    });
+
+    return () => {
+        socket.off('connect');
+        socket.off('disconnect');
+        socket.off('parcel-updated');
+        socket.disconnect();
+    };
+  }, [refetch]);
 
   const stats = useMemo(() => {
     const parcels: IParcel[] = parcelsData?.data || [];
@@ -46,7 +66,14 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white capitalize">Welcome back, {user?.name.split(' ')[0]}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white capitalize flex items-center gap-3">
+            Welcome back, {user?.name.split(' ')[0]}
+            {isSocketConnected && (
+                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-500 font-bold uppercase tracking-wider animate-in fade-in duration-1000">
+                   <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Live
+                </span>
+            )}
+          </h1>
           <p className="text-zinc-500 mt-1">Here is what's happening with your deliveries today.</p>
         </div>
         <Link to="/book-parcel">

@@ -3,23 +3,81 @@ import { useGetAssignedParcelsQuery, useUpdateParcelStatusMutation } from '@/red
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Truck, Phone, CheckCircle2, Loader2, Navigation, PackageCheck, Box } from 'lucide-react';
+import { Car, Phone, CheckCircle2, Loader2, Navigation, PackageCheck, Box, Radio } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 import type { IParcel, IUser } from '@/types';
+import { socket } from '@/lib/socket';
+import LiveMap from '@/components/map/LiveMap';
 
 const DeliveryAssignments: React.FC = () => {
   const { data: parcels, isLoading, isFetching, refetch } = useGetAssignedParcelsQuery(undefined) as { data: { data: IParcel[] } | undefined, isLoading: boolean, isFetching: boolean, refetch: any };
   const [updateStatus, { isLoading: isUpdating }] = useUpdateParcelStatusMutation();
 
+  const [activeTracking, setActiveTracking] = React.useState<string | null>(null);
+  const [location, setLocation] = React.useState<{ lat: number; lng: number } | null>(null);
+  const watchId = React.useRef<number | null>(null);
+
   const handleUpdate = async (id: string, status: string, note: string) => {
     try {
       await updateStatus({ id, status, note }).unwrap();
       toast.success(`Parcel status updated to ${status}.`);
+      if (status === 'Delivered' && activeTracking === id) {
+        stopTracking();
+      }
     } catch (err: any) {
       toast.error(err?.data?.message || 'Update failed.');
     }
   };
+
+  const startTracking = (parcelId: string) => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setActiveTracking(parcelId);
+    socket.connect();
+    socket.emit('join-parcel', parcelId);
+
+    watchId.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setLocation({ lat: latitude, lng: longitude });
+        socket.emit('update-location', { 
+            parcelId, 
+            lat: latitude, 
+            lng: longitude 
+        });
+      },
+      (err) => {
+        console.error(err);
+        toast.error("Failed to get your location");
+        stopTracking();
+      },
+      { enableHighAccuracy: true }
+    );
+    
+    toast.success("Live tracking started. Stay safe!");
+  };
+
+  const stopTracking = () => {
+    if (watchId.current !== null) {
+      navigator.geolocation.clearWatch(watchId.current);
+      watchId.current = null;
+    }
+    setActiveTracking(null);
+    setLocation(null);
+    toast.success("Live tracking stopped.");
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (watchId.current !== null) {
+        navigator.geolocation.clearWatch(watchId.current);
+      }
+    };
+  }, []);
 
   const currentStatus = (parcel: IParcel) => parcel.statusLogs[parcel.statusLogs.length - 1].status;
 
@@ -56,7 +114,7 @@ const DeliveryAssignments: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {parcelsList.length === 0 ? (
           <div className="col-span-full py-20 text-center border-2 border-dashed border-zinc-800 rounded-2xl">
-              <Truck className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
+              <Car className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
               <p className="text-zinc-600 font-medium">No parcels assigned to you yet.</p>
           </div>
         ) : (
@@ -110,17 +168,29 @@ const DeliveryAssignments: React.FC = () => {
                     onClick={() => handleUpdate(parcel._id, 'Dispatched', 'Parcel has been picked up')}
                     disabled={isUpdating}
                   >
-                    <Truck className="w-4 h-4 mr-2" /> Mark Dispatched
+                    <Car className="w-4 h-4 mr-2" /> Mark Dispatched
                   </Button>
                 )}
                 {currentStatus(parcel) === 'Dispatched' && (
-                  <Button 
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                    onClick={() => handleUpdate(parcel._id, 'Delivered', 'Parcel successfully delivered')}
-                    disabled={isUpdating}
-                  >
-                    <PackageCheck className="w-4 h-4 mr-2" /> Mark Delivered
-                  </Button>
+                  <div className="w-full space-y-2">
+                    <Button 
+                        className={cn(
+                            "w-full font-bold",
+                            activeTracking === parcel._id ? "bg-rose-500 hover:bg-rose-600" : "bg-zinc-800 hover:bg-zinc-700"
+                        )}
+                        onClick={() => activeTracking === parcel._id ? stopTracking() : startTracking(parcel._id)}
+                    >
+                        <Radio className={cn("w-4 h-4 mr-2", activeTracking === parcel._id && "animate-pulse")} />
+                        {activeTracking === parcel._id ? "Stop Live Tracking" : "Start Live Tracking"}
+                    </Button>
+                    <Button 
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                        onClick={() => handleUpdate(parcel._id, 'Delivered', 'Parcel successfully delivered')}
+                        disabled={isUpdating}
+                    >
+                        <PackageCheck className="w-4 h-4 mr-2" /> Mark Delivered
+                    </Button>
+                  </div>
                 )}
                 {currentStatus(parcel) === 'Delivered' && (
                   <div className="flex items-center justify-center w-full py-2 text-emerald-500 font-bold text-sm bg-emerald-500/10 rounded-lg">
@@ -128,6 +198,14 @@ const DeliveryAssignments: React.FC = () => {
                   </div>
                 )}
               </CardFooter>
+              {activeTracking === parcel._id && location && (
+                  <div className="p-4 bg-zinc-950 border-t border-zinc-800 animate-in slide-in-from-bottom-2">
+                      <p className="text-[10px] font-black uppercase text-primary mb-2 tracking-widest flex items-center gap-2">
+                          <Radio className="w-3 h-3 animate-pulse" /> Your Live Signal
+                      </p>
+                      <LiveMap deliveryLat={location.lat} deliveryLng={location.lng} height="150px" />
+                  </div>
+              )}
             </Card>
           ))
         )}

@@ -15,6 +15,7 @@ export interface IUser {
   userId?: string;
   isVerified?: boolean;
   address?: string;
+  picture?: string;
 }
 
 export interface IStatusLog {
@@ -39,6 +40,8 @@ export interface IParcel {
   estimatedDeliveryDate?: string;
   statusLogs: IStatusLog[];
   deliveryBoy?: string | IUser;
+  paymentStatus?: 'Pending' | 'Paid';
+  transactionId?: string;
   createdAt: string;
   updatedAt: string;
 }
