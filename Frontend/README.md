@@ -7,7 +7,7 @@ A premium, interactive React application designed for seamless logistics managem
 - **AI Insights**: Dashboard component providing predictive shipment analysis.
 - **Real-time Tracking**: Powered by Socket.io for instant shipment updates.
 - **Stripe Checkout**: Integrated secure card payment flow.
-- **Framer Motion**: Smooth micro-animations for a premium user experience.
+- **Framer Motion**: Premium animations, including a fully immersive full-screen mobile menu.
 - **RTK Query**: High-performance data fetching and caching.
 
 ## 🛠️ Technologies

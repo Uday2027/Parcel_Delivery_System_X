@@ -1,38 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Car, Package, Globe, ArrowRight, Clock, MousePointerClick, Search, ShieldCheck, BrainCircuit } from 'lucide-react';
+import { Car, Globe, ArrowRight, Clock, MousePointerClick, Search, ShieldCheck, BrainCircuit } from 'lucide-react';
 import { motion } from 'framer-motion';
+import PublicNavbar from '@/components/layout/PublicNavbar';
+import PublicFooter from '@/components/layout/PublicFooter';
 
 const Landing: React.FC = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-primary selection:text-primary-foreground overflow-hidden">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
-              <Car className="w-6 h-6 text-zinc-950 fill-current" />
-            </div>
-            <span className="text-2xl font-black tracking-tighter text-white italic group-hover:text-primary transition-colors">EXPRESSFLOW</span>
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <Link to="/features" className="hover:text-primary transition-colors">Features</Link>
-            <Link to="/track-public" className="hover:text-primary transition-colors">Live Tracking</Link>
-            <Link to="/about" className="hover:text-primary transition-colors">About</Link>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="ghost" className="text-zinc-400 hover:text-white hover:bg-zinc-900">Login</Button>
-            </Link>
-            <Link to="/register">
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNavbar />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4">
@@ -46,16 +23,16 @@ const Landing: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-bold uppercase tracking-widest text-primary"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-bold uppercase tracking-widest text-primary whitespace-nowrap"
           >
-            <BrainCircuit className="w-3 h-3" /> Next-Gen Logistics Powered by AI
+            <BrainCircuit className="w-3 h-3 flex-shrink-0" /> Next-Gen Logistics Powered by AI
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl md:text-8xl font-black tracking-tighter leading-tight"
+            className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter leading-tight"
           >
             SHIP SMARTER. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-cyan-500">
@@ -103,14 +80,14 @@ const Landing: React.FC = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-primary to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
             <div className="relative bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden shadow-2xl aspect-[16/9]">
                 <img 
-                  src="/hero_car.png" 
+                  src="/expressflow_premium_hero_v2.png" 
                   alt="ExpressFlow Premium Delivery Car" 
                   className="w-full h-full object-cover rounded-3xl"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
                 
-                {/* Floating UI Elements */}
-                <div className="absolute bottom-8 left-8 right-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Floating UI Elements: Stacked below on mobile, Absolute inside on desktop */}
+                <div className="hidden md:grid absolute bottom-8 left-8 right-8 grid-cols-3 gap-4">
                     {[
                         { label: 'Live Fleet', val: '2,400+', icon: Car },
                         { label: 'Secured Data', val: 'AES-256', icon: ShieldCheck },
@@ -128,6 +105,25 @@ const Landing: React.FC = () => {
                     ))}
                 </div>
             </div>
+
+            {/* Mobile Only Stats Stack */}
+            <div className="md:hidden grid grid-cols-1 gap-4 mt-4">
+                 {[
+                    { label: 'Live Fleet', val: '2,400+', icon: Car },
+                    { label: 'Secured Data', val: 'AES-256', icon: ShieldCheck },
+                    { label: 'Global Hubs', val: '180+', icon: Globe },
+                ].map((s, idx) => (
+                    <div key={idx} className="bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex items-center gap-4">
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <s.icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-widest">{s.label}</p>
+                            <p className="text-lg font-black text-white">{s.val}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
           </div>
         </motion.div>
       </section>
@@ -140,7 +136,7 @@ const Landing: React.FC = () => {
             <p className="text-zinc-500 max-w-2xl mx-auto">Every detail of ExpressFlow is engineered to provide a premium experience for both individual users and enterprises.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { title: 'AI Insights', desc: 'Predictive delivery patterns and route optimization.', icon: BrainCircuit },
               { title: 'Live Tracking', desc: 'Crystal clear visibility with sub-second updates.', icon: Clock },
@@ -159,42 +155,7 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer id="footer" className="py-20 border-t border-zinc-900 bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div className="col-span-1 md:col-span-2 space-y-6">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <Package className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <span className="text-2xl font-black italic tracking-tighter uppercase">ExpressFlow</span>
-                </div>
-                <p className="text-zinc-500 max-w-sm font-medium">
-                    The next evolution in logistics. Secure, fast, and transparent delivery for the modern era.
-                </p>
-            </div>
-            
-            <div className="space-y-4">
-                <h4 className="text-sm font-black uppercase tracking-widest text-white">Platform</h4>
-                <ul className="space-y-2 text-sm text-zinc-500 font-medium">
-                    <li className="hover:text-primary cursor-pointer transition-colors">Track Shipments</li>
-                    <li className="hover:text-primary cursor-pointer transition-colors">Pricing</li>
-                    <li className="hover:text-primary cursor-pointer transition-colors">API Docs</li>
-                </ul>
-            </div>
-
-            <div className="space-y-4">
-                <h4 className="text-sm font-black uppercase tracking-widest text-white">Legal</h4>
-                <ul className="space-y-2 text-sm text-zinc-500 font-medium">
-                    <li className="hover:text-primary cursor-pointer transition-colors">Privacy Policy</li>
-                    <li className="hover:text-primary cursor-pointer transition-colors">Terms of Service</li>
-                </ul>
-            </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 mt-20 pt-8 border-t border-zinc-900 text-center text-zinc-600 text-[10px] font-bold uppercase tracking-widest">
-            © 2026 ExpressFlow Logistics Int. All rights reserved. Built for the future.
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 };

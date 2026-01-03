@@ -20,7 +20,8 @@ ExpressFlow is a high-performance, premium parcel delivery management system bui
 - **Integrated Payments**: Secure checkout flow integrated with Stripe.
 - **Role-Based Access**: Specialized interfaces for Customers, Delivery Crew, and Super Admins.
 - **Admin Control**: Complete management of delivery personnel, assignments, and shipment status.
-- **Responsive Design**: Fully optimized for Desktop, Tablet, and Mobile.
+- **Responsive Design**: Mobile-First architecture with a custom full-screen animated navigation menu.
+- **AI Branding**: Unique, high-fidelity aesthetic featuring AI-generated hybrid delivery vehicles.
 
 ## 📂 Project Structure
 ```bash

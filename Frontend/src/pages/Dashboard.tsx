@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
           </h1>
           <p className="text-zinc-500 mt-1">Here is what's happening with your deliveries today.</p>
         </div>
-        <Link to="/book-parcel">
+        <Link to="/dashboard/book-parcel">
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8">
                 Book New Parcel
             </Button>
@@ -104,7 +104,7 @@ const Dashboard: React.FC = () => {
                 <CardTitle className="text-zinc-100 flex items-center gap-2">
                     <Package className="w-5 h-5 text-primary" /> Recent Shipments
                 </CardTitle>
-                <Link to="/my-parcels">
+                <Link to="/dashboard/my-parcels">
                     <Button variant="ghost" className="text-primary hover:text-primary/80 text-xs px-0 h-auto">View All</Button>
                 </Link>
             </CardHeader>

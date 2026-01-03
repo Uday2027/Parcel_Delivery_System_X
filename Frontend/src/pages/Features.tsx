@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { BrainCircuit, Clock, MousePointerClick, Globe, ShieldCheck, Zap, BarChart3, Headphones } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import PublicNavbar from '@/components/layout/PublicNavbar';
+import PublicFooter from '@/components/layout/PublicFooter';
 
 const features = [
   {
@@ -66,22 +68,7 @@ const features = [
 const Features: React.FC = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-primary selection:text-primary-foreground">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <span className="text-2xl font-black tracking-tighter text-white italic group-hover:text-primary transition-colors uppercase">EXPRESSFLOW</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="ghost" className="text-zinc-400 hover:text-white">Login</Button>
-            </Link>
-            <Link to="/register">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNavbar />
 
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
@@ -112,7 +99,7 @@ const Features: React.FC = () => {
             </motion.p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f, idx) => (
               <motion.div
                 key={idx}
@@ -147,9 +134,7 @@ const Features: React.FC = () => {
         </div>
       </section>
 
-      <footer className="py-12 border-t border-zinc-900 text-center text-zinc-600 text-[10px] font-bold uppercase tracking-widest bg-zinc-950">
-        © 2026 ExpressFlow Logistics Int. All rights reserved.
-      </footer>
+      <PublicFooter />
     </div>
   );
 };
